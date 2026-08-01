@@ -5,6 +5,8 @@ SPDX-License-Identifier: MIT
 
 # zlb (Zig Language Benchmark)
 
+[English](./README.md)
+
 低レイヤからスクリプト言語まで、異なる設計哲学を持つ言語群を同一条件で比較し、最新の **Zig 0.16.0** の最適化能力と実力、および各言語のランタイム・オーバーヘッドを定量的に評価するプロジェクトです。
 
 ## 1. 測定環境 (Environment)

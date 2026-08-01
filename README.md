@@ -5,6 +5,8 @@ SPDX-License-Identifier: MIT
 
 # zlb (Zig Language Benchmark)
 
+[日本語 (Japanese)](./README_ja.md)
+
 This project provides a quantitative evaluation of optimization capabilities and runtime overhead across a spectrum of programming languages—from low-level systems languages to high-level scripting languages. It specifically aims to demonstrate the performance and implementation idiomatics of **Zig 0.16.0** compared to established industry standards.
 
 ## 1. Measurement Environment
