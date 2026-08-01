@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: 2026 TSUKUMO Akito <tsukumoakito99@duck.com>
+# SPDX-License-Identifier: MIT
+# http://editorconfig.org
+
+root = true
+
+[*]
+charset = utf-8
+insert_final_newline = true
+trim_trailing_whitespace = true
+end_of_line = lf
+indent_style = space
+indent_size = 4
+
+[*.scd]
+indent_style = tab
+indent_size = 8
+tab_width = 8
+
+[*.md]
+indent_style = space
+indent_size = 2

@@ -1,0 +1,15 @@
+# SPDX-FileCopyrightText: 2026 TSUKUMO Akito <tsukumoakito99@duck.com>
+# SPDX-License-Identifier: MIT
+
+/private
+/zig-out
+/.zig-cache
+/target
+/__pycache__
+/.venv
+/vendor
+*.exe
+*.o
+*.pdb
+*~
+.DS_Store
