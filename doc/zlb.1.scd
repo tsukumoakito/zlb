@@ -2,7 +2,7 @@ zlb(1) "0.0.0" "zlb User Manual"
 
 # NAME
 
-zlb - Description
+zlb - Zig Language Benchmark
 
 # SYNOPSIS
 

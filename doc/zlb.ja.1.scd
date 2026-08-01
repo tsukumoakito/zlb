@@ -2,7 +2,7 @@ zlb(1) "0.0.0" "zlb ユーザマニュアル"
 
 # NAME
 
-zlb - Description
+zlb - Zig 言語ベンチマーク
 
 # SYNOPSIS
 
