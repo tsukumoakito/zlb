@@ -7,7 +7,7 @@ SPDX-License-Identifier: MIT
 
 [日本語 (Japanese)](./README_ja.md)
 
-This project provides a quantitative evaluation of optimization capabilities and runtime overhead across a spectrum of programming languages—from low-level systems languages to high-level scripting languages. It specifically aims to demonstrate the performance and implementation idiomatics of **Zig 0.16.0** compared to established industry standards.
+This project provides a quantitative evaluation of optimization capabilities and runtime overhead across a spectrum of programming languages. It specifically aims to demonstrate the performance and implementation idiomatics of **Zig 0.16.0** compared to established industry standards.
 
 ## 1. Measurement Environment
 
@@ -28,19 +28,44 @@ This project provides a quantitative evaluation of optimization capabilities and
 | **sieve** | Sieve of Eratosthenes | Array access speed and the impact of Runtime Bounds Checking. |
 | **btree** | Binary Tree generation/deletion | Allocator efficiency and Garbage Collection (GC) overhead. |
 
-## 3. Zig 0.16.0 Implementation Strategy
+## 3. Benchmark Variants & Implementation Levels
 
-Following the latest idiomatic patterns for Zig 0.16.0, this project applies the following strategies to verify its advantages over other languages:
+To ensure a fair "Ground Truth" comparison, implementations are categorized into several levels:
 
-- **Zero-Copy Philosophy**: Utilizing `std.mem.asBytes` for type-safe, non-copying binary casts.
-- **Optimized Memory Management**: Leveraging `std.heap.ArenaAllocator` for high-speed batch deallocation.
-- **Modern Initialization Patterns**: Moving away from deprecated `init` functions to the `.empty` + `ensureTotalCapacity` pattern specific to v0.16.0.
-- **Granular Safety Control**: Evaluating the performance trade-offs between `ReleaseSafe` (with runtime checks) and `ReleaseFast` (maximum optimization).
+### C Language (Compiler Comparison)
+
+We compare three major compilers using the same source code to observe differences in optimization logic:
+
+- **gcc**: The industry standard GNU compiler.
+- **clang**: LLVM-based compiler known for aggressive optimization.
+- **zig cc**: Zig's built-in C compiler (Clang-based), configured with `-ffp-contract=off` to ensure floating-point consistency across SIMD implementations.
+
+### Zig 0.16.0 (Safety & Strategy)
+
+Zig implementations are evaluated in two build modes and various memory/compute strategies:
+
+- **ReleaseFast**: Maximum optimization, all runtime safety checks disabled.
+- **ReleaseSafe**: High optimization, but critical safety checks (bounds, overflow) remain active.
+- **Optimized Strategies**:
+    - `simd`: Manual vectorization using Zig's `@Vector` primitives.
+    - `soa / bitset`: Memory layout optimization using `MultiArrayList` and high-density bit-packing.
+    - `fixed / compact / manual`: Custom memory management using `FixedBufferAllocator` and 32-bit index-based pointers to minimize cache misses.
+
+### Rust & Go (Modern Standards)
+
+- **Rust**: Compiled with `opt-level=3` and `LTO` enabled. We include both idiomatic `Box` pointers and optimized `Arena` (Vec-based) implementations.
+- **Go**: Evaluates the efficiency of the modern tracing Garbage Collector and standard heap management.
+
+### Scripting Languages (Reference)
+
+- **Python & Bash**: Included as high-level baselines.
+- **Measurement Policy**: Due to the extreme performance gap (often several thousand times slower), these are measured with a single sample per task (`--runs 1`) to remain within reasonable execution time.
 
 ## 4. Methodology
 
-- **Execution Time**: Statistical average calculation using `hyperfine`.
-- **Fairness**: All languages and environments use strictly identical parameters (N, Depth) to ensure a direct "Ground Truth" comparison.
+- **Execution Time**: Statistical average calculation using `hyperfine` with 1 warmup run and 20 measurement runs (except for scripts).
+- **Resource Usage**: Measurement of Maximum Resident Set Size (RSS) and System Overhead (%) using real-time process monitoring.
+- **Fairness**: All implementations use strictly identical parameters (N, Depth) to ensure a direct comparison of the computational cost.
 
 ## 5. Evaluation Results
 
@@ -139,4 +164,4 @@ Following the latest idiomatic patterns for Zig 0.16.0, this project applies the
 
 ## License
 
-This benchmark suite is released under the **MIT License**.
+This benchmark suite is released under the [MIT License](./LICENSE).
