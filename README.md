@@ -151,18 +151,18 @@ Zig implementations are evaluated in two build modes and various memory/compute 
 
 #### Mandelbrot (Computational Efficiency)
 
-![Mandel Time](./results/plots/mandel_time.png)
-![Mandel Memory](./results/plots/mandel_memory.png)
+![Mandel Time](./results/plots/mandel_time.svg)
+![Mandel Memory](./results/plots/mandel_memory.svg)
 
 #### Sieve (Data Density)
 
-![Sieve Time](./results/plots/sieve_time.png)
-![Sieve Memory](./results/plots/sieve_memory.png)
+![Sieve Time](./results/plots/sieve_time.svg)
+![Sieve Memory](./results/plots/sieve_memory.svg)
 
 #### Btree (Memory Strategy)
 
-![Btree Time](./results/plots/btree_time.png)
-![Btree Memory](./results/plots/btree_memory.png)
+![Btree Time](./results/plots/btree_time.svg)
+![Btree Memory](./results/plots/btree_memory.svg)
 
 ---
 

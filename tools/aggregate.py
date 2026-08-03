@@ -2,7 +2,7 @@
 # SPDX-FileCopyrightText: 2026 TSUKUMO Akito <tsukumoakito99@duck.com>
 # SPDX-License-Identifier: MIT
 
-"""Benchmark result aggregator and plotter for zlb with resource metrics."""
+"""Benchmark result aggregator and plotter for zlb with high-quality SVG output."""
 
 import glob
 import json
@@ -63,69 +63,74 @@ def calculate_metrics(task):
             total_cpu = res.get("system", 0) + res.get("user", 0)
             overhead = (res.get("system", 0) / total_cpu) * 100 if total_cpu > 0 else 0
 
-            all_metrics.append(
-                {
-                    "label": label,
-                    "ratio": raw_mean / base_mean,
-                    "memory": mem_mib,
-                    "overhead": overhead,
-                }
-            )
+            all_metrics.append({"label": label, "ratio": raw_mean / base_mean, "memory": mem_mib, "overhead": overhead})
     return all_metrics
 
 
 def save_plots(task, metrics):
-    """Generate bar charts sorted by their respective metrics with fixed colors."""
+    """Generate professional horizontal bar charts in SVG format."""
     if not metrics:
         return
     os.makedirs("results/plots", exist_ok=True)
 
-    metrics.sort(key=lambda x: x["ratio"])
+    plt.rcParams.update(
+        {
+            "font.size": 10,
+            "font.family": "sans-serif",
+            "text.color": "#cccccc",
+            "axes.labelcolor": "#cccccc",
+            "xtick.color": "#cccccc",
+            "ytick.color": "#cccccc",
+        }
+    )
+
+    metrics.sort(key=lambda x: x["ratio"], reverse=True)
     labels = [m["label"] for m in metrics]
-    plt.figure(figsize=(18, 10))
-    bars = plt.bar(labels, [m["ratio"] for m in metrics], color=[get_color(label) for label in labels])
-    plt.axhline(y=1.0, color="r", linestyle="--", alpha=0.5, label="GCC Baseline")
-    plt.yscale("log")
-    plt.ylabel("Relative Time (Lower is better)")
-    plt.title(f"ZLB Performance Analysis: {task.upper()} (Actual Measured Time)")
-    plt.xticks(rotation=45, ha="right")
-    plt.grid(axis="y", which="both", linestyle=":", alpha=0.5)
+    ratios = [m["ratio"] for m in metrics]
+
+    plt.figure(figsize=(12, 10), facecolor="#1a1b26")
+    ax = plt.gca()
+    ax.set_facecolor("#1a1b26")
+
+    bars = plt.barh(labels, ratios, color=[get_color(label) for label in labels])
+    plt.axvline(x=1.0, color="#ff4444", linestyle="--", alpha=0.8, label="GCC Baseline")
+
+    plt.xscale("log")
+    plt.xlabel("Relative Time Ratio (Lower is better, Log scale)")
+    plt.title(f"ZLB PERFORMANCE: {task.upper()}", fontsize=16, fontweight="bold", pad=20)
+    plt.grid(axis="x", which="both", linestyle=":", alpha=0.3)
+
     for bar in bars:
+        width = bar.get_width()
         plt.text(
-            bar.get_x() + bar.get_width() / 2.0,
-            bar.get_height(),
-            f"{bar.get_height():.2f}x",
-            ha="center",
-            va="bottom",
-            fontsize=8,
+            width, bar.get_y() + bar.get_height() / 2, f" {width:.2f}x", va="center", fontsize=9, fontweight="bold"
         )
+
     plt.tight_layout()
-    plt.savefig(f"results/plots/{task}_time.png")
+    plt.savefig(f"results/plots/{task}_time.svg", format="svg", transparent=True)
     plt.close()
 
-    metrics.sort(key=lambda x: x["memory"])
+    metrics.sort(key=lambda x: x["memory"], reverse=True)
     labels_mem = [m["label"] for m in metrics]
-    plt.figure(figsize=(18, 10))
-    bars = plt.bar(
-        labels_mem,
-        [m["memory"] for m in metrics],
-        color=[get_color(label) for label in labels_mem],
-    )
-    plt.ylabel("Measured Memory Usage (MiB)")
-    plt.title(f"ZLB Resource Consumption: {task.upper()} (Actual Max RSS)")
-    plt.xticks(rotation=45, ha="right")
-    plt.grid(axis="y", linestyle=":", alpha=0.5)
+    mems = [m["memory"] for m in metrics]
+
+    plt.figure(figsize=(12, 10), facecolor="#1a1b26")
+    ax = plt.gca()
+    ax.set_facecolor("#1a1b26")
+
+    bars = plt.barh(labels_mem, mems, color=[get_color(label) for label in labels_mem])
+    plt.xlabel("Memory Usage (MiB)")
+    plt.title(f"ZLB RESOURCE: {task.upper()} (Max RSS)", fontsize=16, fontweight="bold", pad=20)
+    plt.grid(axis="x", linestyle=":", alpha=0.3)
+
     for bar in bars:
+        width = bar.get_width()
         plt.text(
-            bar.get_x() + bar.get_width() / 2.0,
-            bar.get_height(),
-            f"{bar.get_height():.1f}",
-            ha="center",
-            va="bottom",
-            fontsize=8,
+            width, bar.get_y() + bar.get_height() / 2, f" {width:.1f} ", va="center", fontsize=9, fontweight="bold"
         )
+
     plt.tight_layout()
-    plt.savefig(f"results/plots/{task}_memory.png")
+    plt.savefig(f"results/plots/{task}_memory.svg", format="svg", transparent=True)
     plt.close()
 
 
@@ -137,9 +142,10 @@ def update_readme(file_path, summary_content):
     with open(file_path, "r") as f:
         content = f.read()
 
+    content = content.replace(".png", ".svg")
+
     start_marker = "<!-- SUMMARY_START -->"
     end_marker = "<!-- SUMMARY_END -->"
-
     start_idx = content.find(start_marker)
     end_idx = content.find(end_marker)
 
@@ -150,10 +156,9 @@ def update_readme(file_path, summary_content):
 
 
 def main():
-    """Main execution point: aggregate results, generate plots, and update READMEs."""
+    """Main execution point."""
     tasks = ["mandel", "sieve", "btree"]
     os.makedirs("results/plots", exist_ok=True)
-
     overall_summary = ""
 
     for task in tasks:
@@ -167,7 +172,6 @@ def main():
         task_summary += "| :--- | :--- | :--- | :--- |\n"
         for m in sorted(metrics, key=lambda x: x["ratio"]):
             task_summary += f"| {m['label']} | {m['ratio']:.2f}x | {m['memory']:.2f} | {m['overhead']:.1f}% |\n"
-
         overall_summary += task_summary
         sys.stdout.write(task_summary)
 

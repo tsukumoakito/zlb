@@ -151,18 +151,18 @@ Zig 実装は、2 つのビルドモードと複数のメモリ/計算戦略で�
 
 #### Mandelbrot (演算効率)
 
-![Mandel Time](./results/plots/mandel_time.png)
-![Mandel Memory](./results/plots/mandel_memory.png)
+![Mandel Time](./results/plots/mandel_time.svg)
+![Mandel Memory](./results/plots/mandel_memory.svg)
 
 #### Sieve (データ密度)
 
-![Sieve Time](./results/plots/sieve_time.png)
-![Sieve Memory](./results/plots/sieve_memory.png)
+![Sieve Time](./results/plots/sieve_time.svg)
+![Sieve Memory](./results/plots/sieve_memory.svg)
 
 #### Btree (メモリ戦略)
 
-![Btree Time](./results/plots/btree_time.png)
-![Btree Memory](./results/plots/btree_memory.png)
+![Btree Time](./results/plots/btree_time.svg)
+![Btree Memory](./results/plots/btree_memory.svg)
 
 ---
 
