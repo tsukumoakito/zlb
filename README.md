@@ -259,6 +259,29 @@ Identified through Zig's source code analysis but not yet fully utilized in ZLB 
 
 ---
 
+## Future Roadmap: Practical Log Processing (`log-proc`)
+
+While pure algorithmic benchmarks like Mandelbrot and Btree provide valuable insights into raw compute and memory management, the next phase of ZLB focuses on real-world data engineering through a new task: **`log-proc`**.
+
+### The Strategic Importance of `log-proc`
+
+For developers of high-frequency infrastructure, SaaS backends, and monitoring tools, the ability to process massive volumes of structured data with minimal overhead is far more critical than pure mathematical throughput. The `log-proc` task aims to quantify how different languages handle the ingestion, transformation, and generation of structured logs (JSON/Text).
+
+### High-Efficiency Patterns in Zig 0.16.0
+
+The implementation of `log-proc` will leverage specific architectural patterns in Zig 0.16.0 to demonstrate a physical advantage in data processing:
+
+- **Streaming Ingestion with `std.json.Scanner`**: Unlike managed languages that often unmarshal entire payloads into memory, Zig allows for 1-token-at-a-time streaming. This ensures a constant, ultra-low memory footprint regardless of the log file size.
+- **Zero-Copy Parsing**: Utilizing logic that references existing strings within the source buffer, physically eliminating unnecessary memory allocations and copying cycles.
+- **Zero-Allocation Formatting with `std.fmt.bufPrintSentinel`**: By leveraging stack-based formatting, Zig can generate structured output without ever touching the heap, providing a type-safe alternative to C's `sprintf`.
+- **Optimized Numerical Conversions**: Benchmarking Zig’s low-level integer and float rendering against the heavier string-processing runtimes of other environments.
+
+### Comparative Vision
+
+String and JSON processing are notoriously resource-intensive for scripting languages and can lead to significant memory spikes in managed-memory languages. By implementing these patterns, the `log-proc` suite will visualize the "Efficiency Gap"—proving that Zig is a precision tool for building sustainable, low-latency digital infrastructure.
+
+---
+
 ## License
 
 This benchmark suite is released under the [MIT License](./LICENSE).
