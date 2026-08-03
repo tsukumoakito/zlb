@@ -4,7 +4,7 @@ SPDX-License-Identifier: MIT
 -->
 
 <p align="center">
-  <img src="doc/zlb_logo.png" alt="ZLB Logo" width="600">
+  <img src="doc/zlb_logo.svg" width="100%" alt="ZLB Logo">
 </p>
 
 # ZLB (Zig Language Benchmark)
