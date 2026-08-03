@@ -212,6 +212,49 @@ To achieve peak performance in Zig, one must move beyond "Vibe Coding" and embra
 
 ---
 
+## Deep Analysis: Memory Management in Zig 0.16.0
+
+The following evaluation details the "Ground Truth" of Zig 0.16.0’s memory infrastructure and its current utilization in ZLB.
+
+### 1. Proven Logic (Implemented in ZLB)
+
+These APIs form the backbone of Zig's performance dominance in the current suite.
+
+- **`std.heap.ArenaAllocator`**:
+    - **Usage**: `btree_zig_arena`.
+    - **Logic**: Aggregates small allocations into large chunks for $O(1)$ deallocation. While highly efficient, its internal chunk list overhead, making it slightly slower than the `Fixed` variant but more flexible for unknown workloads.
+- **`std.heap.FixedBufferAllocator`**:
+    - **Usage**: `btree_zig_fixed / manual`.
+    - **Logic**: Operates on a pre-allocated slice with zero management overhead. It achieves parity with C's raw pointer-increment strategy while maintaining the safety of the `Allocator` interface.
+- **`std.heap.MemoryPool`**:
+    - **Usage**: `btree_zig_pool`.
+    - **Logic**: Optimized for fixed-size types (Nodes). Leveraging the new `initCapacity` in 0.16.0, it eliminates fragmentation and allocation cycles by reusing memory slots.
+- **`std.MultiArrayList`**:
+    - **Usage**: `sieve_zig_soa`.
+    - **Logic**: A metaprogramming masterpiece that transforms AoS to SoA at compile time. It maximizes cache throughput by ensuring that only the relevant fields (e.g., `is_prime` flags) occupy the L1 cache during hot loops.
+- **`std.DynamicBitSet`**:
+    - **Usage**: `sieve_zig_bitset`.
+    - **Logic**: Compresses boolean arrays to 1 bit per element. ZLB implements the updated 0.16.0 `deinit()` signature, which internally handles its associated allocator.
+
+### 2. Potential Optimizations (Roadmap)
+
+Identified through Zig's source code analysis but not yet fully utilized in ZLB benchmarks.
+
+- **`std.heap.DebugAllocator` (The GPA Alternative)**:
+    - **Note on GPA**: *`std.heap.GeneralPurposeAllocator (GPA)` is absent in the 0.16.0 core.* Instead, **`DebugAllocator`** is the canonical implementation for safety and leak detection.
+    - **Prospect**: Evaluating the performance cost of `DebugAllocator` in `ReleaseSafe` mode to quantify the "Safety Tax" in real-world scenarios.
+- **`std.heap.StackFallbackAllocator`**:
+    - **Prospect**: Ideal for the upcoming `log-proc` task. It allows for "Zero-Heap" string processing by using stack space first and only falling back to the heap if the buffer overflows.
+- **`std.heap.BrkAllocator / SmpAllocator`**:
+    - **Prospect**: Low-level primitives for direct system-call interaction. Useful for benchmarking the absolute overhead of the OS memory manager versus user-land allocators.
+- **`std.StaticBitSet`**:
+    - **Prospect**: For fixed-size workloads, this eliminates the need for an allocator entirely, potentially surpassing even `DynamicBitSet` in raw speed.
+- **`std.hash_map (AutoHashMap / StringHashMap)`**:
+    - **Logic**: 0.16.0 scan results show a significant shift toward the `.empty` + `getOrPut` pattern.
+    - **Prospect**: Crucial for the `log-proc` task to demonstrate how Zig handles structured data mapping with minimal allocation.
+
+---
+
 ## License
 
 This benchmark suite is released under the [MIT License](./LICENSE).
