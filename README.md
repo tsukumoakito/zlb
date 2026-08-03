@@ -252,6 +252,10 @@ Identified through Zig's source code analysis but not yet fully utilized in ZLB 
 - **`std.hash_map (AutoHashMap / StringHashMap)`**:
     - **Logic**: 0.16.0 scan results show a significant shift toward the `.empty` + `getOrPut` pattern.
     - **Prospect**: Crucial for the `log-proc` task to demonstrate how Zig handles structured data mapping with minimal allocation.
+- **`std.atomic (Atomic Value / Mutex)`**:
+    - **Features**: Abstractions for hardware-level atomic operations and synchronization primitives.
+    - **Current Status**: Not yet implemented because Zlb is currently focused on pure single-threaded algorithmic performance.
+    - **Prospect**: Crucial for future **Multi-threaded Benchmarks**. This will demonstrate how Zig’s `atomic` can leverage parallel performance in lock-free data structures with minimal overhead.
 
 ---
 
