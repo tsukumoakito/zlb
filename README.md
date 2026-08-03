@@ -162,6 +162,56 @@ Zig implementations are evaluated in two build modes and various memory/compute 
 
 ---
 
+## Technical Evaluation & Implementation Analysis
+
+The ZLB (Zig Language Benchmark) results reveal the profound impact of implementation strategy and compiler settings on physical performance and resource efficiency.
+
+### 1. Arithmetic Efficiency (Mandelbrot)
+
+In compute-bound tasks, manual vectorization is the ultimate differentiator.
+
+- **The Power of `@Vector`**: Zig's `zig_simd_fast` achieved the lowest time ratio (0.15x). By using 8-lane `f64` vectors, it fills the CPU's execution units more effectively than the 4-lane intrinsics used in C and Rust.
+- **Instruction Scheduling**: Zig’s high-level SIMD primitives provide LLVM with clearer intent, resulting in superior instruction scheduling compared to lower-level C intrinsics.
+
+### 2. Data Density & Cache Locality (Sieve)
+
+Memory bandwidth and cache hits dictate performance in array-heavy workloads.
+
+- **Bit-Level Compression**: `zig_bitset_fast` (0.65x) outpaced the standard C implementation (1.00x) by representing each element as a single bit rather than a byte. This increases information density in the L1 cache by 8x.
+- **Safety Overhead**: The delta between `zig_bitset_fast` and `zig_bitset_safe` represents the cost of runtime bounds checking. In Sieve, where random-access is frequent, this overhead is measurable but often acceptable for the added security.
+
+### 3. Memory Management Strategies (Btree)
+
+Btree performance is a direct reflection of allocation logic.
+
+- **Pointer Compression (Compact Mode)**: `zig_compact_fast` (0.19x) surpassed even the fastest C Arena implementation. By using 32-bit indices instead of 64-bit pointers, Zig effectively halved the memory footprint of the tree structure, reducing cache misses during traversal.
+- **Arena vs. Pool vs. Naive**: The results demonstrate that `ArenaAllocator` (batch deallocation) and `MemoryPool` (object reuse) are significantly faster than traditional recursive `free()` calls (Naive Mode), which incur heavy management overhead.
+
+---
+
+## Strategic Implementation in Zig 0.16.0
+
+To achieve peak performance in Zig, one must move beyond "Vibe Coding" and embrace the following disciplines:
+
+### Precise Memory Control
+
+- **Choose the Right Allocator**: Do not rely on a single global allocator. Use `ArenaAllocator` for temporary batch tasks and `FixedBufferAllocator` when the maximum memory requirement is known at comptime.
+- **Data-Oriented Design**: Prioritize `MultiArrayList` (SoA) and bit-packing to maximize cache utilization.
+
+### Advanced Optimization Settings
+
+- **ReleaseFast**: Disables all runtime safety checks. Use this only for verified, performance-critical hot paths.
+- **ReleaseSafe**: Maintains critical safety checks (bounds, overflow). In most ZLB tasks, the performance cost is negligible compared to the reliability gained.
+- **Target Simulation**: Always compile with `-mcpu=native` to allow the compiler to use modern instructions like AVX2 or AVX-512.
+
+### Comparison Summary
+
+- **Vs. C**: Zig matches or exceeds C's performance by providing better standard abstractions for SIMD and memory management.
+- **Vs. Rust**: While Rust provides strong safety, Zig's explicit control over memory layout often allows for more aggressive hardware-level optimizations without resorting to `unsafe` hacks.
+- **Vs. Go/Python**: The overhead of Garbage Collection and Interpreters is clearly visible in the resource consumption graphs. Zig’s "zero-overhead" philosophy makes it the definitive choice for resource-constrained or performance-critical systems.
+
+---
+
 ## License
 
 This benchmark suite is released under the [MIT License](./LICENSE).
