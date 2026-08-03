@@ -3,7 +3,11 @@ SPDX-FileCopyrightText: 2026 TSUKUMO Akito <tsukumoakito99@duck.com>
 SPDX-License-Identifier: MIT
 -->
 
-# zlb (Zig Language Benchmark)
+<p align="center">
+  <img src="doc/zlb_logo.png" alt="ZLB Logo" width="600">
+</p>
+
+# ZLB (Zig Language Benchmark)
 
 [日本語 (Japanese)](./README_ja.md)
 
@@ -187,13 +191,13 @@ Btree performance is a direct reflection of allocation logic.
 - **Pointer Compression (Compact Mode)**: `zig_compact_fast` (0.19x) surpassed even the fastest C Arena implementation. By using 32-bit indices instead of 64-bit pointers, Zig effectively halved the memory footprint of the tree structure, reducing cache misses during traversal.
 - **Arena vs. Pool vs. Naive**: The results demonstrate that `ArenaAllocator` (batch deallocation) and `MemoryPool` (object reuse) are significantly faster than traditional recursive `free()` calls (Naive Mode), which incur heavy management overhead.
 
-## 4. Allocator Selection Strategy (Official Patterns)
+### 4. Allocator Selection Strategy (Official Patterns)
 
 Following the principles defined in the [Official Zig 0.16.0 Memory Documentation](https://ziglang.org/documentation/0.16.0/#Memory), ZLB categorizes memory management into specific patterns to answer the fundamental question: *"Where are the bytes?"*
 
 Zig does not provide a hidden global allocator (like C's `malloc`). Instead, it mandates explicit allocator selection based on the following criteria:
 
-### The "Choosing an Allocator" Framework
+#### The "Choosing an Allocator" Framework
 
 1. **Comptime-Bounded Memory**: If the maximum required bytes are known at compile time, **`std.heap.FixedBufferAllocator`** is the optimal choice. This is the logic behind our `zig_fixed` benchmarks, achieving raw pointer-increment speed.
 2. **Cyclical or Batch Tasks**: For processes that run from start to end without a cyclical pattern (like a CLI tool) or for tasks with a clear "end of cycle" (like a frame in a game), **`std.heap.ArenaAllocator`** is recommended. This allows for $O(1)$ batch deallocation at the end of the task.
@@ -201,7 +205,7 @@ Zig does not provide a hidden global allocator (like C's `malloc`). Instead, it 
 4. **High-Performance Release**: For production workloads in `ReleaseFast` mode, **`std.heap.smp_allocator`** is the primary candidate for high-concurrency and minimal overhead.
 5. **Libraries & Generic Components**: To maintain pure logic, libraries should always accept an `Allocator` as a parameter, allowing the end-user to decide the memory strategy.
 
-### Explicit Handling of "Truth"
+#### Explicit Handling of "Truth"
 
 - **Heap Failure as Logic**: Unlike other languages that may crash on OOM, Zig treats heap failure as a return value (`error.OutOfMemory`). Every ZLB implementation strictly handles these errors to ensure 100% reliability.
 - **Ownership Clarity**: By following the pattern where the "caller owns the memory," ZLB implementations maintain clear boundaries between logic and resource management, preventing invisible leaks.
