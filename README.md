@@ -29,8 +29,10 @@ This project provides a quantitative evaluation of optimization capabilities and
 | Item | Content | Primary Objective |
 | :--- | :--- | :--- |
 | **mandel** | Mandelbrot Set calculation | Pure floating-point math, loop unrolling, and SIMD efficiency. |
-| **sieve** | Sieve of Eratosthenes | Array access speed and the impact of Runtime Bounds Checking. |
-| **btree** | Binary Tree generation/deletion | Allocator efficiency and Garbage Collection (GC) overhead. |
+| **sieve** | Sieve of Eratosthenes | Array access speed, BitSet data density, and Runtime Bounds Checking. |
+| **btree** | Binary Tree generation/deletion | Allocator efficiency (Arena, Pool, Fixed) and GC overhead. |
+| **log_proc** | Structured Log Processing | String seeking, JSON parsing, and zero-allocation formatting. |
+| **atomics** | Atomic Operations & Mutex | Hardware-level atomic overhead and user-space synchronization. |
 
 ## 3. Benchmark Variants & Implementation Levels
 
