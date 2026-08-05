@@ -79,71 +79,126 @@ Zig 実装は、2 つのビルドモードと複数のメモリ/計算戦略で�
 
 | Metric | Time Ratio | Measured Memory (MiB) | Sys Overhead (%) |
 | :--- | :--- | :--- | :--- |
-| zig_simd_fast | 0.15x | 6.05 | 0.3% |
-| zig_simd_safe | 0.17x | 6.07 | 0.3% |
-| c_simd_gcc | 0.26x | 6.07 | 0.3% |
+| zig_simd_fast | 0.16x | 6.09 | 0.1% |
+| zig_simd_safe | 0.18x | 6.06 | 0.1% |
 | c_simd_clang | 0.26x | 6.07 | 0.1% |
-| rust_simd | 0.26x | 6.05 | 0.3% |
-| c_simd_zigcc | 0.27x | 6.06 | 0.5% |
-| zig_std_safe | 0.99x | 6.05 | 0.2% |
-| zig_std_fast | 1.00x | 6.05 | 0.3% |
-| c_std_gcc | 1.00x | 6.07 | 0.2% |
-| c_std_clang | 1.01x | 6.08 | 0.2% |
-| rust_std | 1.01x | 6.07 | 0.2% |
-| c_std_zigcc | 1.02x | 6.05 | 0.2% |
-| go_std | 1.06x | 6.06 | 0.3% |
-| python | 46.77x | 12.08 | 0.1% |
-| bash | 79.20x | 6.80 | 0.2% |
+| c_simd_gcc | 0.27x | 6.07 | 0.1% |
+| rust_simd | 0.27x | 6.09 | 0.1% |
+| c_simd_zigcc | 0.27x | 6.07 | 0.1% |
+| zig_std_fast | 1.00x | 6.07 | 0.1% |
+| c_std_gcc | 1.00x | 6.05 | 0.1% |
+| zig_std_safe | 1.00x | 6.09 | 0.1% |
+| c_std_clang | 1.02x | 6.08 | 0.1% |
+| rust_std | 1.03x | 6.07 | 0.1% |
+| c_std_zigcc | 1.03x | 6.09 | 0.1% |
+| go_std | 1.07x | 6.07 | 0.2% |
+| python | 48.39x | 12.08 | 0.1% |
+| bash | 81.94x | 6.80 | 0.2% |
 
 ### SIEVE Results (Actual Measured)
 
 | Metric | Time Ratio | Measured Memory (MiB) | Sys Overhead (%) |
 | :--- | :--- | :--- | :--- |
-| zig_bitset_fast | 0.65x | 6.09 | 5.6% |
-| zig_bitset_safe | 0.90x | 6.06 | 4.4% |
-| c_std_zigcc | 0.96x | 11.43 | 15.1% |
-| c_soa_zigcc | 0.97x | 11.46 | 14.7% |
-| c_std_gcc | 1.00x | 11.41 | 14.9% |
-| c_soa_clang | 1.06x | 11.45 | 14.1% |
-| c_std_clang | 1.08x | 11.41 | 13.8% |
-| zig_std_fast | 1.14x | 10.15 | 12.3% |
-| rust_std | 1.20x | 11.85 | 12.1% |
-| go_std | 1.28x | 13.68 | 14.7% |
-| zig_std_safe | 1.44x | 10.28 | 11.2% |
-| c_soa_gcc | 1.60x | 49.58 | 42.5% |
-| zig_soa_fast | 1.82x | 50.18 | 39.2% |
-| rust_soa | 1.99x | 50.01 | 33.9% |
-| python | 2.78x | 26.36 | 31.6% |
-| zig_soa_safe | 3.51x | 72.25 | 29.9% |
-| bash | 146.50x | 99.77 | 1.1% |
+| zig_static_bitset_fast | 0.63x | 6.07 | 4.1% |
+| zig_static_bitset_safe | 0.64x | 6.08 | 5.5% |
+| zig_bitset_fast | 0.64x | 6.09 | 3.9% |
+| zig_bitset_safe | 0.75x | 6.05 | 4.3% |
+| c_std_zigcc | 0.95x | 11.46 | 14.7% |
+| c_soa_zigcc | 0.96x | 11.44 | 15.0% |
+| c_std_gcc | 1.00x | 11.44 | 15.4% |
+| zig_soa_fast | 1.05x | 10.15 | 14.0% |
+| zig_std_fast | 1.06x | 10.15 | 13.5% |
+| c_soa_clang | 1.06x | 11.40 | 13.3% |
+| c_std_clang | 1.07x | 11.40 | 13.6% |
+| rust_std | 1.16x | 11.89 | 11.6% |
+| go_std | 1.24x | 14.34 | 14.0% |
+| zig_std_safe | 1.52x | 10.28 | 9.8% |
+| c_soa_gcc | 1.71x | 49.51 | 41.4% |
+| zig_soa_safe | 1.72x | 15.03 | 12.5% |
+| rust_soa | 1.99x | 50.02 | 34.7% |
+| python | 2.85x | 26.36 | 31.6% |
+| bash | 150.51x | 99.77 | 1.1% |
 
 ### BTREE Results (Actual Measured)
 
 | Metric | Time Ratio | Measured Memory (MiB) | Sys Overhead (%) |
 | :--- | :--- | :--- | :--- |
-| zig_compact_fast | 0.19x | 16.67 | 37.6% |
-| c_arena_gcc | 0.21x | 33.87 | 62.6% |
-| c_arena_clang | 0.26x | 33.87 | 49.6% |
-| c_arena_zigcc | 0.27x | 33.89 | 52.7% |
-| zig_compact_safe | 0.29x | 16.78 | 23.5% |
-| zig_fixed_fast | 0.34x | 32.65 | 42.1% |
-| zig_manual_fast | 0.34x | 32.61 | 37.5% |
-| rust_arena | 0.48x | 66.36 | 59.5% |
-| zig_manual_safe | 0.49x | 32.82 | 28.2% |
-| zig_fixed_safe | 0.50x | 32.82 | 29.6% |
-| zig_arena_fast | 0.57x | 32.65 | 26.0% |
-| zig_arena_safe | 0.59x | 33.83 | 24.0% |
-| zig_pool_fast | 0.60x | 32.65 | 24.1% |
-| zig_pool_safe | 0.65x | 32.79 | 23.0% |
-| go_managed | 0.93x | 38.80 | 10.3% |
-| c_std_gcc | 1.00x | 65.90 | 29.2% |
+| zig_compact_fast | 0.19x | 16.68 | 37.6% |
+| c_arena_gcc | 0.21x | 33.87 | 61.0% |
+| c_arena_zigcc | 0.26x | 33.92 | 50.8% |
+| c_arena_clang | 0.26x | 33.86 | 51.7% |
+| zig_compact_safe | 0.29x | 16.78 | 24.9% |
+| zig_brk_fast | 0.33x | 32.41 | 43.1% |
+| zig_fixed_fast | 0.34x | 32.65 | 43.3% |
+| zig_manual_fast | 0.36x | 32.62 | 38.6% |
+| zig_brk_safe | 0.42x | 32.56 | 33.8% |
+| zig_smp_fast | 0.44x | 32.65 | 35.1% |
+| rust_arena | 0.48x | 66.36 | 61.7% |
+| zig_manual_safe | 0.52x | 32.82 | 27.8% |
+| zig_smp_safe | 0.52x | 32.78 | 32.6% |
+| zig_fixed_safe | 0.54x | 32.82 | 27.4% |
+| zig_arena_fast | 0.57x | 32.66 | 26.8% |
+| zig_arena_safe | 0.59x | 32.78 | 26.5% |
+| zig_pool_fast | 0.61x | 32.65 | 24.8% |
+| zig_naive_fast | 0.61x | 32.65 | 27.5% |
+| zig_stack_fallback_safe | 0.63x | 32.78 | 23.7% |
+| zig_stack_fallback_fast | 0.63x | 32.65 | 24.6% |
+| zig_pool_safe | 0.66x | 32.78 | 23.7% |
+| zig_naive_safe | 0.72x | 32.78 | 22.0% |
+| go_managed | 0.92x | 39.14 | 10.2% |
+| c_std_gcc | 1.00x | 65.90 | 28.8% |
 | c_std_clang | 1.05x | 65.90 | 28.5% |
-| zig_naive_fast | 1.06x | 32.90 | 16.3% |
-| c_std_zigcc | 1.06x | 65.90 | 27.4% |
-| zig_naive_safe | 1.16x | 39.03 | 17.1% |
-| rust_std | 1.34x | 66.35 | 21.2% |
-| python | 11.58x | 204.74 | 9.1% |
-| bash | 11254.84x | 6.07 | 49.8% |
+| c_std_zigcc | 1.06x | 65.90 | 27.1% |
+| zig_debug_fast | 1.10x | 32.90 | 16.0% |
+| zig_debug_safe | 1.20x | 39.03 | 17.1% |
+| rust_std | 1.32x | 66.28 | 21.7% |
+| python | 12.33x | 204.74 | 9.1% |
+| bash | 11992.23x | 6.07 | 49.8% |
+
+### LOG_PROC Results (Actual Measured)
+
+| Metric | Time Ratio | Measured Memory (MiB) | Sys Overhead (%) |
+| :--- | :--- | :--- | :--- |
+| zig_std_fast | 0.83x | 6.09 | 0.7% |
+| c_std_clang | 0.97x | 6.08 | 0.5% |
+| c_std_gcc | 1.00x | 6.08 | 0.7% |
+| c_std_zigcc | 1.00x | 6.09 | 0.5% |
+| c_structured_gcc | 1.51x | 25.26 | 5.0% |
+| c_structured_clang | 1.53x | 24.67 | 6.1% |
+| rust_std | 1.69x | 6.07 | 0.4% |
+| c_structured_zigcc | 1.69x | 24.69 | 4.8% |
+| rust_structured | 2.40x | 36.43 | 4.9% |
+| rust_serde | 2.41x | 6.07 | 0.3% |
+| zig_autohash_fast | 2.54x | 34.70 | 4.1% |
+| zig_stringhash_fast | 3.24x | 60.08 | 6.2% |
+| zig_static_fast | 3.31x | 6.08 | 0.2% |
+| zig_autohash_safe | 3.97x | 34.86 | 2.6% |
+| zig_static_safe | 4.38x | 6.05 | 0.1% |
+| zig_stringhash_safe | 4.64x | 60.42 | 4.5% |
+| zig_std_safe | 7.22x | 6.07 | 0.1% |
+| go_fast | 11.81x | 10.62 | 2.0% |
+| go_std | 13.11x | 9.70 | 1.7% |
+| python | 34.55x | 13.42 | 0.6% |
+| bash | 11013.37x | 6.06 | 53.7% |
+
+### ATOMICS Results (Actual Measured)
+
+| Metric | Time Ratio | Measured Memory (MiB) | Sys Overhead (%) |
+| :--- | :--- | :--- | :--- |
+| zig_atomic_value_fast | 0.97x | 6.05 | 1.7% |
+| zig_atomic_value_safe | 0.98x | 6.06 | 1.7% |
+| c_atomic_value_zigcc | 0.98x | 6.07 | 1.9% |
+| rust_atomic_value | 0.99x | 6.06 | 1.4% |
+| c_atomic_value_clang | 0.99x | 6.05 | 1.3% |
+| c_atomic_value_gcc | 1.00x | 6.06 | 1.3% |
+| go_atomic_value | 1.03x | 6.04 | 3.5% |
+| zig_atomic_mutex_fast | 1.64x | 6.07 | 1.0% |
+| c_atomic_mutex_gcc | 1.66x | 6.07 | 1.2% |
+| c_atomic_mutex_zigcc | 1.68x | 6.09 | 1.2% |
+| c_atomic_mutex_clang | 1.68x | 6.03 | 1.0% |
+| rust_atomic_mutex | 1.76x | 6.08 | 1.1% |
+| zig_atomic_mutex_safe | 1.79x | 6.09 | 0.7% |
+| go_atomic_mutex | 2.30x | 6.05 | 1.8% |
 
 <!-- SUMMARY_END -->
 
@@ -163,6 +218,16 @@ Zig 実装は、2 つのビルドモードと複数のメモリ/計算戦略で�
 
 ![Btree Time](./results/plots/btree_time.svg)
 ![Btree Memory](./results/plots/btree_memory.svg)
+
+#### Log Processing (JSONと文字列処理)
+
+![Log Proc Time](./results/plots/log_proc_time.svg)
+![Log Proc Memory](./results/plots/log_proc_memory.svg)
+
+#### Atomics (原子操作とミューテックス)
+
+![Atomics Time](./results/plots/atomics_time.svg)
+![Atomics Memory](./results/plots/atomics_memory.svg)
 
 ---
 
@@ -235,68 +300,54 @@ Zig で最高性能を達成するには、「雰囲気（Vibe）」で書くこ
 
 ---
 
-## 詳細解析：Zig 0.16.0 におけるメモリ管理の実態
+## 詳細解析：Zig 0.16.0 におけるシステム基盤の実態
 
-AST 解析結果に基づき、現時点での評価は下記のとおりです。
+ZLB 1.0.6 は、Zig 0.16.0 のプリミティブを最大限に活用し、C 言語や Rust と対等、あるいはそれ以上の性能を実現しています。以下に、各ベンチマークで使用されている技術的論理の詳細をまとめます。
 
-### 1. 実証済みの論理（ZLB 実装済み）
+### 1. 高度なメモリ管理 (`std.heap`)
 
-現在のベンチマークにおいて、Zig が他言語を凌駕する根拠となっている API 群です。
+Zig の明示的なメモリ管理は、極めて低い RSS（物理メモリ使用量）を実現する最大の要因です。
 
-- **`std.heap.ArenaAllocator`**:
-    - **用途**: `btree_zig_arena` で活用。小規模な確保をチャンクにまとめ、一括解放 ($O(1)$) を実現。柔軟性が高い一方、内部のチャンク管理コストにより、極限の速度では `Fixed` 版に一歩譲る特性が解析でも確認されています。
-- **`std.heap.FixedBufferAllocator`**:
-    - **用途**: `btree_zig_fixed / manual` で活用。事前確保されたスライス上でのポインタ移動のみで動作。C 言語の生ポインタ操作と物理的に同等の速度を、安全な抽象化層の上で実現しています。
-- **`std.heap.MemoryPool`**:
-    - **用途**: `btree_zig_pool` で活用。固定サイズ（Node等）に特化したプール。0.16.0 の新機能 `initCapacity` を使い、断片化を完全に排除した高速な再利用を実現しています。
-- **`std.MultiArrayList`**:
-    - **用途**: `sieve_zig_soa` で活用。構造体（AoS）をコンパイル時に配列（SoA）へ組み替えるメタプログラミングの極致。必要なデータのみをキャッシュに載せることで、メモリ帯域の限界を引き出します。
-- **`std.DynamicBitSet`**:
-    - **用途**: `sieve_zig_bitset` で活用。1要素を 1bit に圧縮。0.16.0 で刷新された `deinit()` 仕様（アロケータ保持）を ZLB でも即座に反映済みです。
+- **`ArenaAllocator`**:
+    - **活用**: `btree_zig_arena`, `log_proc_zig_static`。
+    - **論理**: 小規模な確保をチャンクにまとめ、一括解放 ($O(1)$) を実現。`log_proc` では `.reset(.retain_capacity)` パターンにより、100万件のデータ処理をわずか 6MiB の固定メモリ枠内で完遂します。
+- **`FixedBufferAllocator`**:
+    - **活用**: `btree_zig_fixed`, `zig_brk`。
+    - **論理**: 事前確保されたスライス上で動作し、管理オーバーヘッドをゼロにします。`brk_allocator` と組み合わせることで、メモリ・スループットの「物理的限界」を測定しています。
+- **`MemoryPool`**:
+    - **活用**: `btree_zig_pool` で活用。
+    - **論理**: 固定サイズ（Node等）のオブジェクトに特化したプール。0.16.0 の `initCapacity` を利用し、システムコールの反復を避けてメモリを高速に再利用します。
+- **`DebugAllocator`**:
+    - **論理**: 0.16.0 において、安全性とリーク検出の標準（旧GPAの代替）として実装されています。ZLB ではこれを用いて「安全税（Safety Tax）」を数値化し、診断機能が性能に与える影響を可視化しています。
+- **`StackFallbackAllocator`**:
+    - **論理**: まずスタックを使用し、溢れた場合のみヒープへ移行します。`btree_zig_stack_fallback` 等で「ゼロ・ヒープ」処理の可能性を検証しています。
 
-### 2. 潜在的な最適化余地（ロードマップ）
+### 2. データ構造とキャッシュの最適化
 
-存在を確認しているが、まだ ZLB で数値化されていない領域です。
+- **`std.MultiArrayList` (SoA)**:
+    - **活用**: `sieve_zig_soa`。
+    - **論理**: 構造体配列（AoS）をコンパイル時に配列構造体（SoA）へ組み替えるメタプログラミング。必要なフィールドのみをキャッシュに載せることで、メモリ帯域を極限まで引き出します。
+- **`BitSet` (Dynamic & Static)**:
+    - **活用**: `sieve_zig_bitset`, `sieve_zig_static_bitset`。
+    - **論理**: 1要素を 1bit に圧縮。特に `StaticBitSet` 実装では、標準 API の値コピーを回避して内部マスクを直接操作し、CPU の `POPCNT` 命令を直接叩くことで、瞬時の集計を可能にしています。
 
-- **`std.heap.DebugAllocator` (GPA の代替)**:
-    - **GPA に関する注意**: *Zig 0.16.0 のコアには `GeneralPurposeAllocator (GPA)` が存在しません。* 代わりに、**`DebugAllocator`** が安全性とリーク検出の正典として実装されています。
-    - **展望**: `ReleaseSafe` モードにおいて、この安全機構がどの程度の性能コストを課すのかを計測し、実務的な指標を提供します。
-- **`std.heap.StackFallbackAllocator`**:
-    - **展望**: 計画中の `log-proc` タスクに最適。スタックを優先利用することで、小規模な文字列処理におけるヒープ確保（オーバーヘッド）を物理的に 0 に抑える戦略を検証します。
-- **`std.heap.BrkAllocator / SmpAllocator`**:
-    - **展望**: システムコール直結のプリミティブ。OS レベルの挙動がユーザーランドの管理論理とどう干渉するかを暴き出すための対象です。
-- **`std.StaticBitSet`**:
-    - **展望**: サイズが既知の固定負荷テストにおいて、アロケータを一切介さない「真のゼロ・コスト」を証明する武器となります。
-- **`std.hash_map (AutoHashMap / StringHashMap)`**:
-    - **論理**: 0.16.0 では多くの `init` が非推奨となり、`.empty` と `getOrPut` の組み合わせに刷新されました。
-    - **展望**: `log-proc` において、マッピングや集計をいかに低コストで行えるかを他言語に突きつけるための鍵となります。
-- **`std.atomic (Atomic Value / Mutex)`**:
-    - **特徴**: ハードウェアの原子操作（Atomic operations）および同期プリミティブを抽象化したもの。
-    - **未実装の理由**: 現在の ZLB はシングルスレッドでの純粋なアルゴリズム性能の検証に特化しているため。
-    - **展望**: 将来的に **「マルチスレッド・ベンチマーク（Multi-threaded Benchmark）」** を追加する際、Zig の `atomic` がロックフリー（Lock-free）なデータ構造において、どれだけオーバーヘッドなく並列性能を引き出せるかを可視化します。
+### 3. 実務的なデータ処理 (JSON と文字列処理)
 
----
+`log_proc` スイートは、データエンジニアリングにおける Zig の実用性を示しています。
 
-## 将来のロードマップ：実務的なログ処理性能 (`log-proc`)
+- **`std.json.Scanner` によるストリーミング**:
+    - **論理**: ペイロード全体をメモリに展開する他言語とは異なり、Zig は 1 トークンずつの解析が可能です。これにより、入力サイズに関わらずメモリ使用量を一定に保ちます。
+- **ゼロ・アロケーション・フォーマット (`bufPrint`)**:
+    - **論理**: スタックバッファを用いて構造化ログを生成します。C 言語の `sprintf` に対する安全かつ高速な代替案であり、`zig_std_fast` が C の標準実装を凌駕する要因となっています。
+- **効率的な文字列探索**:
+    - **論理**: `find` や `findScalarPos` を活用し、新しいスライスを生成せずに検索位置を特定します。これにより、`ReleaseSafe` モードにおける境界チェックのコストを最小化しています。
 
-Mandelbrot や Btree といった純粋なアルゴリズム・ベンチマークに加え、ZLB の次なるフェーズでは、より実務的なデータエンジニアリングに焦点を当てた新タスク **`log-proc`** を導入します。
+### 4. ハードウェア・プリミティブ (Atomics)
 
-### `log-proc` の戦略的意義
-
-高頻度なインフラ、SaaS バックエンド、および監視ツールの開発者にとって、膨大な構造化データを最小のオーバーヘッドで処理する能力は、純粋な数学的スループットよりも遥かに重要です。`log-proc` タスクは、構造化ログ（JSON/テキスト）の読み込み、変換、生成において、各言語がどれだけ効率的にリソースを扱えるかを定量化します。
-
-### Zig 0.16.0 における高効率パターン
-
-`log-proc` の実装では、データ処理における物理的な優位性を証明するために、Zig 0.16.0 の特定のアーキテクチャ・パターンを活用します。
-
-- **`std.json.Scanner` によるストリーミング解析**: ペイロード全体をメモリに展開する言語とは異なり、Zig は 1 トークンずつのストリーミング処理を可能にします。これにより、ログファイルのサイズに関わらず、物理メモリ使用量 (RSS) を極小かつ一定に保つことができます。
-- **ゼロコピー・パース**: ソースバッファ内の文字列を直接参照する論理により、不要なメモリ確保とコピー・サイクルを物理的に排除します。
-- **`std.fmt.bufPrintSentinel` によるゼロ・アロケーション**: スタックベースのフォーマットを活用することで、ヒープを一切汚染せずに構造化データを出力します。これは C 言語の `sprintf` に対する、安全かつ高性能な代替案となります。
-- **最適化された数値変換**: 他のランタイムの重厚な文字列処理に対し、Zig の低レイヤな整数・浮動小数点レンダリングの実力を検証します。
-
-### 比較の展望
-
-文字列や JSON の処理は、スクリプト言語においてはリソース集約的であり、管理メモリ言語においてはメモリ使用量の急増を招きやすい領域です。これらのパターンを実装することで、`log-proc` スイートは「効率性の格差」を可視化し、Zig が持続可能で低遅延なデジタルインフラを構築するための精密な道具であることを証明します。
+- **`std.atomic.Value`**:
+    - **論理**: ハードウェアの原子操作（`LOCK XADD` 等）に直接マップされます。Zig の「薄さ」を証明し、C や Rust と完全に同一のハードウェア性能を引き出します。
+- **`std.atomic.Mutex`**:
+    - **論理**: ユーザー空間同期プリミティブ。`tryLock` と `spinLoopHint` を組み合わせた高効率なスピンロックを実装し、ローカルスレッド間同期のオーバーヘッドを最小限に抑えています。
 
 ---
 

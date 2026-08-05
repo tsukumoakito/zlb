@@ -41,9 +41,7 @@ pub fn main(init: std.process.Init) !void {
         depth = try std.fmt.parseInt(i32, args[1], 10);
     }
 
-    var da = std.heap.DebugAllocator(.{}).init;
-    defer _ = da.deinit();
-    const allocator = da.allocator();
+    const allocator = std.heap.smp_allocator;
 
     const root = try createTree(allocator, depth);
     const count = countNodes(root);

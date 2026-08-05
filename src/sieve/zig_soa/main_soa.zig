@@ -6,7 +6,6 @@ const Io = std.Io;
 
 const NumberInfo = struct {
     is_prime: u8,
-    value: u32,
 };
 
 pub fn main(init: std.process.Init) !void {
@@ -15,39 +14,33 @@ pub fn main(init: std.process.Init) !void {
 
     var n: usize = 10000000;
     if (args.len > 1) {
-        n = try std.fmt.parseInt(usize, args[1], 10);
+        n = std.fmt.parseInt(usize, args[1], 10) catch 10000000;
     }
 
     const allocator = std.heap.page_allocator;
-
     var list = std.MultiArrayList(NumberInfo).empty;
     try list.ensureTotalCapacity(allocator, n + 1);
     defer list.deinit(allocator);
     list.len = n + 1;
 
-    const is_prime_slice = list.items(.is_prime);
-    const value_slice = list.items(.value);
+    const sieve = list.items(.is_prime);
+    @memset(sieve, 1);
 
-    @memset(is_prime_slice, 1);
-    if (n >= 0) is_prime_slice[0] = 0;
-    if (n >= 1) is_prime_slice[1] = 0;
-
-    for (value_slice, 0..) |*val, i| {
-        val.* = @intCast(i);
-    }
+    if (n >= 0) sieve[0] = 0;
+    if (n >= 1) sieve[1] = 0;
 
     var p: usize = 2;
     while (p * p <= n) : (p += 1) {
-        if (is_prime_slice[p] == 1) {
+        if (sieve[p] == 1) {
             var i = p * p;
             while (i <= n) : (i += p) {
-                is_prime_slice[i] = 0;
+                sieve[i] = 0;
             }
         }
     }
 
     var count: u64 = 0;
-    for (is_prime_slice) |val| {
+    for (sieve) |val| {
         if (val == 1) count += 1;
     }
 

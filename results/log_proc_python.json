@@ -1,0 +1,23 @@
+{
+  "results": [
+    {
+      "command": "python",
+      "mean": 5.85900761228,
+      "stddev": null,
+      "median": 5.85900761228,
+      "user": 5.71172854,
+      "system": 0.03729386,
+      "min": 5.85900761228,
+      "max": 5.85900761228,
+      "times": [
+        5.85900761228
+      ],
+      "memory_usage_byte": [
+        14069760
+      ],
+      "exit_codes": [
+        0
+      ]
+    }
+  ]
+}

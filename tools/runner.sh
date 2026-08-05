@@ -6,10 +6,19 @@ set -euo pipefail
 
 mkdir -p results
 
-if [[ "${1:-}" == "--clean" ]]; then
-    make clean
-    rm -f results/*.json results/*.hash
-fi
+# フラグ解析
+case "${1:-}" in
+    "--clean")
+        # コンパイル成果物と、スクリプト（python/bash）以外の計測結果を削除
+        make clean
+        find results/ -type f ! -name "*_python.*" ! -name "*_bash.*" -delete
+        ;;
+    "--purge")
+        # 全ての計測結果を含めて完全に初期化
+        make clean
+        rm -f results/*.json results/*.hash
+        ;;
+esac
 
 make build
 
@@ -39,6 +48,7 @@ run_bench() {
                 "zig_std_fast" "zig_std_safe"
                 "zig_soa_fast" "zig_soa_safe"
                 "zig_bitset_fast" "zig_bitset_safe"
+                "zig_static_bitset_fast" "zig_static_bitset_safe"
                 "rust_std" "rust_soa" "go_std"
             )
             ;;
@@ -52,7 +62,33 @@ run_bench() {
                 "zig_fixed_fast" "zig_fixed_safe"
                 "zig_compact_fast" "zig_compact_safe"
                 "zig_manual_fast" "zig_manual_safe"
+                "zig_debug_fast" "zig_debug_safe"
+                "zig_stack_fallback_fast" "zig_stack_fallback_safe"
+                "zig_brk_fast" "zig_brk_safe"
+                "zig_smp_fast" "zig_smp_safe"
                 "rust_std" "rust_arena" "go_managed"
+            )
+            ;;
+        "log_proc")
+            targets=(
+                "c_std_gcc" "c_std_clang" "c_std_zigcc"
+                "c_structured_gcc" "c_structured_clang" "c_structured_zigcc"
+                "zig_std_fast" "zig_std_safe"
+                "zig_autohash_fast" "zig_autohash_safe"
+                "zig_stringhash_fast" "zig_stringhash_safe"
+                "zig_static_fast" "zig_static_safe"
+                "rust_std" "rust_structured" "rust_serde"
+                "go_std" "go_fast"
+            )
+            ;;
+        "atomics")
+            targets=(
+                "c_atomic_value_gcc" "c_atomic_value_clang" "c_atomic_value_zigcc"
+                "c_atomic_mutex_gcc" "c_atomic_mutex_clang" "c_atomic_mutex_zigcc"
+                "zig_atomic_value_fast" "zig_atomic_value_safe"
+                "zig_atomic_mutex_fast" "zig_atomic_mutex_safe"
+                "rust_atomic_value" "rust_atomic_mutex"
+                "go_atomic_value" "go_atomic_mutex"
             )
             ;;
     esac
@@ -62,7 +98,6 @@ run_bench() {
         local bin_path="bin/${bin_name}"
         local out="results/${bin_name}.json"
         local hfile="results/${bin_name}.hash"
-
         local cur_h
         cur_h=$(get_hash "$bin_path")
 
@@ -74,13 +109,17 @@ run_bench() {
         echo "$cur_h" >"$hfile"
     done
 
+    if [[ "$task" == "atomics" ]]; then return 0; fi
+
     local scripts=("python" "bash")
     for s in "${scripts[@]}"; do
         local ext="py"
         [[ "$s" == "bash" ]] && ext="sh"
-        local spath="src/${task}/${s}_std/main.${ext}"
+        local spath="src/${task//_/-}/${s}_std/main.${ext}"
         [[ "$task" == "btree" && "$s" == "python" ]] && spath="src/btree/python_managed/main.py"
         [[ "$task" == "btree" && "$s" == "bash" ]] && spath="src/btree/bash_naive/main.sh"
+        [[ "$task" == "log_proc" && "$s" == "python" ]] && spath="src/log-proc/python_std/main.py"
+        [[ "$task" == "log_proc" && "$s" == "bash" ]] && spath="src/log-proc/bash_std/main.sh"
 
         local label="${task}_${s}"
         local out="results/${label}.json"
@@ -103,5 +142,7 @@ run_bench() {
 run_bench "mandel" 4000
 run_bench "sieve" 10000000
 run_bench "btree" 20
+run_bench "log_proc" 1000000
+run_bench "atomics" 10000000
 
 python3 tools/aggregate.py

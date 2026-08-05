@@ -4,18 +4,18 @@
 const std = @import("std");
 const Io = std.Io;
 
-pub fn main(init: std.process.Init) !void {
-    const args_allocator = init.arena.allocator();
-    const args = try init.minimal.args.toSlice(args_allocator);
+const MAX_LIMIT = 10000000;
 
-    var n: usize = 10000000;
+pub fn main(init: std.process.Init) !void {
+    const allocator = init.arena.allocator();
+    const args = try init.minimal.args.toSlice(allocator);
+
+    var n: usize = MAX_LIMIT;
     if (args.len > 1) {
-        n = try std.fmt.parseInt(usize, args[1], 10);
+        n = std.fmt.parseInt(usize, args[1], 10) catch MAX_LIMIT;
     }
 
-    const allocator = std.heap.page_allocator;
-
-    var is_prime = try std.DynamicBitSet.initFull(allocator, n + 1);
+    var is_prime = try std.DynamicBitSet.initFull(std.heap.page_allocator, n + 1);
     defer is_prime.deinit();
 
     if (n >= 0) is_prime.unset(0);
@@ -35,6 +35,7 @@ pub fn main(init: std.process.Init) !void {
 
     const stdout = Io.File.stdout();
     const stderr = Io.File.stderr();
+
     var out_buf: [128]u8 = undefined;
     var out_f = Io.Writer.fixed(&out_buf);
     try out_f.print("Checksum: {d}\n", .{count});

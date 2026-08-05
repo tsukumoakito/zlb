@@ -17,12 +17,12 @@ def get_color(name):
     name = name.lower()
     if name.startswith("zig"):
         return "#f7a41d"  # Zig Orange
-    if name.startswith("go"):
-        return "#00add8"  # Go Cyan
-    if "c_" in name:
-        return "#555555"  # C Gray
     if name.startswith("rust"):
         return "#e06c75"  # Rust Pink
+    if name.startswith("go"):
+        return "#00add8"  # Go Cyan
+    if name.startswith("c_"):
+        return "#555555"  # C Gray
     if name.startswith("python"):
         return "#3776ab"  # Python Blue
     if name.startswith("bash"):
@@ -33,21 +33,37 @@ def get_color(name):
 def calculate_metrics(task):
     """Calculate raw ratios and collect metrics from individual JSON files."""
     base_mean = None
-    baseline_path = f"results/{task}_c_std_gcc.json"
+
+    # ATOMICSタスクの場合は基準ファイルを変更
+    if task == "atomics":
+        baseline_path = f"results/{task}_c_atomic_value_gcc.json"
+    else:
+        baseline_path = f"results/{task}_c_std_gcc.json"
+
     if os.path.exists(baseline_path):
         with open(baseline_path, "r") as f:
             base_mean = json.load(f)["results"][0]["mean"]
+    else:
+        all_jsons = glob.glob(f"results/{task}_*.json")
+        if not all_jsons:
+            return []
 
-    if not base_mean:
-        return []
+        fastest_time = float("inf")
+        for j_file in all_jsons:
+            with open(j_file, "r") as f:
+                m_time = json.load(f)["results"][0]["mean"]
+                if m_time < fastest_time:
+                    fastest_time = m_time
+        base_mean = fastest_time
 
     all_metrics = []
     for json_file in glob.glob(f"results/{task}_*.json"):
         with open(json_file, "r") as f:
             data = json.load(f)
             res = data["results"][0]
-            raw_name = res["command"].split()[0].strip("./")
+            raw_name = res["command"].split()[0].strip("./").replace("bin/", "")
             label = raw_name.replace(f"{task}_", "")
+
             if "python3" in res["command"]:
                 label = "python"
             if "bash" in res["command"]:
@@ -92,19 +108,16 @@ def save_plots(task, metrics):
     ax = plt.gca()
     ax.set_facecolor("#1a1b26")
 
-    bars = plt.barh(labels, ratios, color=[get_color(label) for label in labels])
-    plt.axvline(x=1.0, color="#ff4444", linestyle="--", alpha=0.8, label="GCC Baseline")
+    plt.barh(labels, ratios, color=[get_color(label) for label in labels])
+    plt.axvline(x=1.0, color="#ff4444", linestyle="--", alpha=0.8)
 
     plt.xscale("log")
     plt.xlabel("Relative Time Ratio (Lower is better, Log scale)")
     plt.title(f"ZLB PERFORMANCE: {task.upper()}", fontsize=16, fontweight="bold", pad=20)
     plt.grid(axis="x", which="both", linestyle=":", alpha=0.3)
 
-    for bar in bars:
-        width = bar.get_width()
-        plt.text(
-            width, bar.get_y() + bar.get_height() / 2, f" {width:.2f}x", va="center", fontsize=9, fontweight="bold"
-        )
+    for i, ratio in enumerate(ratios):
+        plt.text(ratio, i, f" {ratio:.2f}x", va="center", fontsize=9, fontweight="bold")
 
     plt.tight_layout()
     plt.savefig(f"results/plots/{task}_time.svg", format="svg", transparent=True)
@@ -118,16 +131,13 @@ def save_plots(task, metrics):
     ax = plt.gca()
     ax.set_facecolor("#1a1b26")
 
-    bars = plt.barh(labels_mem, mems, color=[get_color(label) for label in labels_mem])
+    plt.barh(labels_mem, mems, color=[get_color(label) for label in labels_mem])
     plt.xlabel("Memory Usage (MiB)")
     plt.title(f"ZLB RESOURCE: {task.upper()} (Max RSS)", fontsize=16, fontweight="bold", pad=20)
     plt.grid(axis="x", linestyle=":", alpha=0.3)
 
-    for bar in bars:
-        width = bar.get_width()
-        plt.text(
-            width, bar.get_y() + bar.get_height() / 2, f" {width:.1f} ", va="center", fontsize=9, fontweight="bold"
-        )
+    for i, mem in enumerate(mems):
+        plt.text(mem, i, f" {mem:.1f} ", va="center", fontsize=9, fontweight="bold")
 
     plt.tight_layout()
     plt.savefig(f"results/plots/{task}_memory.svg", format="svg", transparent=True)
@@ -142,8 +152,6 @@ def update_readme(file_path, summary_content):
     with open(file_path, "r") as f:
         content = f.read()
 
-    content = content.replace(".png", ".svg")
-
     start_marker = "<!-- SUMMARY_START -->"
     end_marker = "<!-- SUMMARY_END -->"
     start_idx = content.find(start_marker)
@@ -156,8 +164,8 @@ def update_readme(file_path, summary_content):
 
 
 def main():
-    """Main execution point."""
-    tasks = ["mandel", "sieve", "btree"]
+    """Main execution point to aggregate results and update READMEs."""
+    tasks = ["mandel", "sieve", "btree", "log_proc", "atomics"]
     os.makedirs("results/plots", exist_ok=True)
     overall_summary = ""
 
@@ -165,6 +173,7 @@ def main():
         metrics = calculate_metrics(task)
         if not metrics:
             continue
+
         save_plots(task, metrics)
 
         task_summary = f"\n### {task.upper()} Results (Actual Measured)\n\n"
@@ -172,6 +181,7 @@ def main():
         task_summary += "| :--- | :--- | :--- | :--- |\n"
         for m in sorted(metrics, key=lambda x: x["ratio"]):
             task_summary += f"| {m['label']} | {m['ratio']:.2f}x | {m['memory']:.2f} | {m['overhead']:.1f}% |\n"
+
         overall_summary += task_summary
         sys.stdout.write(task_summary)
 
