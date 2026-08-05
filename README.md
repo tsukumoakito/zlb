@@ -310,7 +310,7 @@ To achieve peak performance in Zig, one must move beyond basic syntax and embrac
 
 ## Deep Analysis: Infrastructure of Zig 0.16.0
 
-ZLB 1.0.6 leverages core 0.16.0 primitives to achieve performance parity with or dominance over C and Rust.
+ZLB leverages core 0.16.0 primitives to achieve performance parity with or dominance over C and Rust.
 
 ### 1. Advanced Memory Management (`std.heap`)
 
