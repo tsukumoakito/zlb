@@ -71,6 +71,7 @@ Zig implementations are evaluated in two build modes and various memory/compute 
 
 - **Execution Time**: Statistical average calculation using `hyperfine` with 1 warmup run and 20 measurement runs (except for scripts).
 - **Resource Usage**: Measurement of Maximum Resident Set Size (RSS) and System Overhead (%) using real-time process monitoring.
+- **System Overhead Logic**: Calculated as `System Time / (User Time + System Time)`. Note that in ultra-fast implementations, a high percentage often indicates that the logic is so efficient that the constant cost of OS process setup becomes the dominant factor.
 - **Fairness**: All implementations use strictly identical parameters (N, Depth) to ensure a direct comparison of the computational cost.
 
 ## 5. Evaluation Results
@@ -210,26 +211,31 @@ Zig implementations are evaluated in two build modes and various memory/compute 
 
 ![Mandel Time](./results/plots/mandel_time.svg)
 ![Mandel Memory](./results/plots/mandel_memory.svg)
+![Mandel Overhead](./results/plots/mandel_overhead.svg)
 
 #### Sieve (Data Density)
 
 ![Sieve Time](./results/plots/sieve_time.svg)
 ![Sieve Memory](./results/plots/sieve_memory.svg)
+![Sieve Overhead](./results/plots/sieve_overhead.svg)
 
 #### Btree (Memory Strategy)
 
 ![Btree Time](./results/plots/btree_time.svg)
 ![Btree Memory](./results/plots/btree_memory.svg)
+![Btree Overhead](./results/plots/btree_overhead.svg)
 
 #### Log Processing (String & JSON)
 
 ![Log Proc Time](./results/plots/log_proc_time.svg)
 ![Log Proc Memory](./results/plots/log_proc_memory.svg)
+![Log Proc Overhead](./results/plots/log_proc_overhead.svg)
 
 #### Atomics (Hardware Primitives)
 
 ![Atomics Time](./results/plots/atomics_time.svg)
 ![Atomics Memory](./results/plots/atomics_memory.svg)
+![Atomics Overhead](./results/plots/atomics_overhead.svg)
 
 ---
 
@@ -241,115 +247,85 @@ The ZLB (Zig Language Benchmark) results reveal the profound impact of implement
 
 In compute-bound tasks, manual vectorization is the ultimate differentiator.
 
-- **The Power of `@Vector`**: Zig's `zig_simd_fast` achieved the lowest time ratio (0.15x). By using 8-lane `f64` vectors, it fills the CPU's execution units more effectively than the 4-lane intrinsics used in C and Rust.
-- **Instruction Scheduling**: Zig’s high-level SIMD primitives provide LLVM with clearer intent, resulting in superior instruction scheduling compared to lower-level C intrinsics.
+- **The Power of `@Vector`**: Zig's `zig_simd_fast` achieved the lowest time ratio (0.16x). By using 8-lane `f64` vectors, it fills the CPU's execution units more effectively than the 4-lane intrinsics used in C and Rust.
+- **Instruction Scheduling**: Zig’s high-level SIMD primitives provide LLVM with clearer intent. By avoiding the rigid structure of manual SIMD intrinsics, the compiler has more freedom to perform register renaming and pipeline optimization, resulting in superior instructional throughput.
 
 ### 2. Data Density & Cache Locality (Sieve)
 
 Memory bandwidth and cache hits dictate performance in array-heavy workloads.
 
-- **Bit-Level Compression**: `zig_bitset_fast` (0.65x) outpaced the standard C implementation (1.00x) by representing each element as a single bit rather than a byte. This increases information density in the L1 cache by 8x.
-- **Safety Overhead**: The delta between `zig_bitset_fast` and `zig_bitset_safe` represents the cost of runtime bounds checking. In Sieve, where random-access is frequent, this overhead is measurable but often acceptable for the added security.
+- **Bit-Level Compression**: `zig_static_bitset_fast` (0.63x) outpaced the standard C implementation (1.00x) by representing each element as a single bit. This increases the L1 cache information density by 8x, drastically reducing memory-stall cycles.
+- **Safety Overhead**: The delta between `zig_bitset_fast` and `zig_bitset_safe` represents the cost of runtime bounds checking. In Sieve, where random-access is frequent, this overhead is measurable but remains significantly faster than idiomatic C due to the superior data layout.
 
 ### 3. Memory Management Strategies (Btree)
 
-Btree performance is a direct reflection of allocation logic.
+Btree performance is a direct reflection of allocation logic and pointer overhead.
 
-- **Pointer Compression (Compact Mode)**: `zig_compact_fast` (0.19x) surpassed even the fastest C Arena implementation. By using 32-bit indices instead of 64-bit pointers, Zig effectively halved the memory footprint of the tree structure, reducing cache misses during traversal.
-- **Arena vs. Pool vs. Naive**: The results demonstrate that `ArenaAllocator` (batch deallocation) and `MemoryPool` (object reuse) are significantly faster than traditional recursive `free()` calls (Naive Mode), which incur heavy management overhead.
+- **Pointer Compression (Compact Mode)**: `zig_compact_fast` (0.19x) surpassed even the fastest C Arena implementation. By using 32-bit indices instead of 64-bit pointers, Zig effectively halved the memory footprint of the tree structure. This reduced memory traffic and improved cache locality during depth-first traversals.
+- **Arena vs. Pool vs. Naive**: The results demonstrate that `ArenaAllocator` (batch deallocation) and `MemoryPool` (object reuse) are significantly faster than traditional recursive `free()` calls (Naive Mode), which incur heavy management overhead and heap fragmentation.
 
-### 4. Allocator Selection Strategy (Official Patterns)
+### 4. The System Overhead Paradox (Understanding the Ratio)
+
+In the BTREE and SIEVE benchmarks, an apparent contradiction appears: Zig implementations often show a **higher System Overhead (%)** despite being faster and using less memory than managed languages like Go.
+
+- **The Shrinking Denominator**: System Overhead is a percentage of total time. In `zig_compact_fast`, the `User Time` (actual computation) is reduced so drastically that fixed kernel costs—such as process initialization, `mmap` for the heap, and page table setup—represent a larger *proportion* of the total execution time.
+- **Workload Concentration**: High-performance Zig code often uses "Up-front Allocation" (e.g., `Arena` or `FixedBuffer`). This causes the OS to handle page faults in a short, intense burst at startup. While the absolute `System Time` is low, its ratio is high because the work is completed so quickly.
+- **Managed Language Masking**: Languages like Go have continuous background runtime activity (GC monitoring, stack growth checks) that counts as `User Time`. This inflates the denominator, making the `System Time` ratio appear smaller, even if the total execution is several times slower.
+- **Verdict**: A high System Overhead in ZLB is a hallmark of **Maximum User-Space Compute Density**.
+
+### 5. Allocator Selection Strategy (Official Patterns)
 
 Following the principles defined in the [Official Zig 0.16.0 Memory Documentation](https://ziglang.org/documentation/0.16.0/#Memory), ZLB categorizes memory management into specific patterns to answer the fundamental question: *"Where are the bytes?"*
 
-Zig does not provide a hidden global allocator (like C's `malloc`). Instead, it mandates explicit allocator selection based on the following criteria:
-
 #### The "Choosing an Allocator" Framework
 
-1. **Comptime-Bounded Memory**: If the maximum required bytes are known at compile time, **`std.heap.FixedBufferAllocator`** is the optimal choice. This is the logic behind our `zig_fixed` benchmarks, achieving raw pointer-increment speed.
-2. **Cyclical or Batch Tasks**: For processes that run from start to end without a cyclical pattern (like a CLI tool) or for tasks with a clear "end of cycle" (like a frame in a game), **`std.heap.ArenaAllocator`** is recommended. This allows for $O(1)$ batch deallocation at the end of the task.
-3. **Development & Debugging**: During development, **`std.heap.DebugAllocator`** (the 0.16.0 successor to the previous GPA logic) is the standard for detecting memory leaks and double-frees. This is used in our `zig_naive` patterns.
-4. **High-Performance Release**: For production workloads in `ReleaseFast` mode, **`std.heap.smp_allocator`** is the primary candidate for high-concurrency and minimal overhead.
-5. **Libraries & Generic Components**: To maintain pure logic, libraries should always accept an `Allocator` as a parameter, allowing the end-user to decide the memory strategy.
-
-#### Explicit Handling of "Truth"
-
-- **Heap Failure as Logic**: Unlike other languages that may crash on OOM, Zig treats heap failure as a return value (`error.OutOfMemory`). Every ZLB implementation strictly handles these errors to ensure 100% reliability.
-- **Ownership Clarity**: By following the pattern where the "caller owns the memory," ZLB implementations maintain clear boundaries between logic and resource management, preventing invisible leaks.
+1. **Comptime-Bounded Memory**: `std.heap.FixedBufferAllocator` is the optimal choice when limits are known. Our `zig_fixed` benchmarks demonstrate the "physical limit" of memory throughput with near-zero management overhead.
+2. **Cyclical or Batch Tasks**: `std.heap.ArenaAllocator` allows for $O(1)$ batch deallocation. In `log_proc`, the `.reset(.retain_capacity)` pattern allows processing millions of entries within a fixed 6MiB footprint.
+3. **Development & Debugging**: `std.heap.DebugAllocator` (the 0.16.0 successor to GPA) is used in our `zig_naive` patterns to quantify the "Safety Tax" of heavy-duty leak detection.
+4. **High-Performance Release**: `std.heap.smp_allocator` is the primary candidate for production workloads, balancing concurrency and minimal metadata overhead.
 
 ---
 
 ## Strategic Implementation in Zig 0.16.0
 
-To achieve peak performance in Zig, one must move beyond "Vibe Coding" and embrace the following disciplines:
+To achieve peak performance in Zig, one must move beyond basic syntax and embrace hardware-aware disciplines:
 
 ### Precise Memory Control
 
-- **Choose the Right Allocator**: Do not rely on a single global allocator. Use `ArenaAllocator` for temporary batch tasks and `FixedBufferAllocator` when the maximum memory requirement is known at comptime.
+- **Explicit Allocators**: Zig does not provide a hidden global allocator. ZLB implementations strictly handle `error.OutOfMemory` as a logical path, ensuring 100% reliability under resource pressure.
 - **Data-Oriented Design**: Prioritize `MultiArrayList` (SoA) and bit-packing to maximize cache utilization.
 
 ### Advanced Optimization Settings
 
-- **ReleaseFast**: Disables all runtime safety checks. Use this only for verified, performance-critical hot paths.
-- **ReleaseSafe**: Maintains critical safety checks (bounds, overflow). In most ZLB tasks, the performance cost is negligible compared to the reliability gained.
-- **Target Simulation**: Always compile with `-mcpu=native` to allow the compiler to use modern instructions like AVX2 or AVX-512.
+- **ReleaseFast vs. ReleaseSafe**: While `ReleaseFast` removes all checks, ZLB shows that in many tasks (like Mandel), the performance cost of `ReleaseSafe` is negligible compared to the reliability gained.
+- **Target Simulation**: All ZLB binaries are compiled with `-mcpu=native` to unlock the full potential of modern instruction sets (AVX2/AVX-512).
 
 ### Comparison Summary
 
 - **Vs. C**: Zig matches or exceeds C's performance by providing better standard abstractions for SIMD and memory management.
-- **Vs. Rust**: While Rust provides strong safety, Zig's explicit control over memory layout often allows for more aggressive hardware-level optimizations without resorting to `unsafe` hacks.
-- **Vs. Go/Python**: The overhead of Garbage Collection and Interpreters is clearly visible in the resource consumption graphs. Zig’s "zero-overhead" philosophy makes it the definitive choice for resource-constrained or performance-critical systems.
+- **Vs. Rust**: While Rust provides strong safety, Zig's explicit control over memory layout (e.g., index-based pointers in Btree) allows for more aggressive hardware-level optimizations without resorting to `unsafe` blocks.
+- **Vs. Go/Python**: The overhead of Garbage Collection and Interpreters is clearly visible. Zig’s "zero-overhead" philosophy makes it the definitive choice for resource-constrained systems.
 
 ---
 
 ## Deep Analysis: Infrastructure of Zig 0.16.0
 
-ZLB 1.0.6 leverages the core primitives of Zig 0.16.0 to achieve performance parity with or dominance over C and Rust. The following analysis details how these components are utilized across the benchmark suite.
+ZLB 1.0.6 leverages core 0.16.0 primitives to achieve performance parity with or dominance over C and Rust.
 
 ### 1. Advanced Memory Management (`std.heap`)
 
-Zig's explicit memory management is the primary driver of its ultra-low RSS (Resident Set Size).
+- **`MemoryPool`**: Optimized for fixed-size objects (Nodes). Leveraging `initCapacity` in 0.16.0, it eliminates fragmentation by recycling memory slots without repeated system calls.
+- **`StackFallbackAllocator`**: Attempts to use stack space before falling back to the heap, enabling "Zero-Heap" processing in `btree_zig_stack_fallback`.
 
-- **`ArenaAllocator`**:
-    - **Usage**: `btree_zig_arena`, `log_proc_zig_static`.
-    - **Logic**: Batches small allocations into large chunks for $O(1)$ deallocation. In `log_proc`, the `.reset(.retain_capacity)` pattern is used to process millions of entries within a fixed 6MiB memory footprint.
-- **`FixedBufferAllocator`**:
-    - **Usage**: `btree_zig_fixed`, `zig_brk`.
-    - **Logic**: Operates on a pre-allocated slice with zero management overhead. By combining this with `brk_allocator`, ZLB demonstrates the "physical limit" of memory throughput.
-- **`MemoryPool`**:
-    - **Usage**: `btree_zig_pool`.
-    - **Logic**: Optimized for fixed-size objects (Nodes). Leveraging `initCapacity` in 0.16.0, it eliminates fragmentation by recycling memory slots without repeated system calls.
-- **`DebugAllocator`**:
-    - **Logic**: The canonical 0.16.0 replacement for the old GPA in safety-critical contexts. ZLB uses it to quantify the "Safety Tax," showing how heavy-duty leak detection impacts raw throughput.
-- **`StackFallbackAllocator`**:
-    - **Logic**: Attempts to use stack space before falling back to the heap. This allows for "Zero-Heap" processing in tasks like `btree_zig_stack_fallback`.
+### 2. Practical Processing (JSON & Strings)
 
-### 2. Data Structure & Cache Optimization
+- **Streaming `std.json.Scanner`**: Zig allows for 1-token-at-a-time streaming. Unlike Go/Python which unmarshal entire payloads, Zig maintains a constant memory profile regardless of input size.
+- **Zero-Allocation Formatting (`bufPrint`)**: Provides a type-safe, high-performance alternative to C's `sprintf`, resulting in `zig_std_fast` outperforming C's standard implementation in log generation.
 
-- **`std.MultiArrayList` (SoA)**:
-    - **Usage**: `sieve_zig_soa`.
-    - **Logic**: A metaprogramming engine that transforms Arrays of Structures (AoS) into Structures of Arrays (SoA). It maximizes L1 cache hits by ensuring that only necessary fields (e.g., `is_prime` flags) are fetched during tight loops.
-- **`BitSet` (Dynamic & Static)**:
-    - **Usage**: `sieve_zig_bitset`, `sieve_zig_static_bitset`.
-    - **Logic**: Compresses data to 1 bit per element. The `StaticBitSet` implementation in ZLB bypasses standard API value-copying to perform direct mask manipulation, utilizing the CPU's `POPCNT` instruction for near-instant checksum calculation.
+### 3. Hardware Primitives (Atomics)
 
-### 3. Practical Processing (JSON & Strings)
-
-The `log_proc` suite demonstrates Zig's efficiency in common data engineering tasks.
-
-- **Streaming `std.json.Scanner`**:
-    - **Logic**: Unlike Go or Python which unmarshal entire payloads, Zig allows for 1-token-at-a-time streaming. This results in a constant memory profile regardless of input size.
-- **Zero-Allocation Formatting (`bufPrint`)**:
-    - **Logic**: Uses stack-based buffers to generate structured logs. This provides a type-safe, high-performance alternative to C's `sprintf`, resulting in `zig_std_fast` outperforming C's standard implementation.
-- **Efficient String Search**:
-    - **Logic**: Utilizing `std.mem.find` and `findScalarPos` to seek data within slices without the overhead of generating new sub-slices, significantly reducing the cost of safety checks in `ReleaseSafe` mode.
-
-### 4. Hardware Primitives (Atomics)
-
-- **`std.atomic.Value`**:
-    - **Logic**: Maps directly to hardware atomic instructions (e.g., `LOCK XADD`). This demonstrates Zig's "thinness" over the CPU, matching C and Rust's performance precisely.
-- **`std.atomic.Mutex`**:
-    - **Logic**: A user-space synchronization primitive. ZLB implements a high-performance spinlock using `tryLock` and `spinLoopHint`, showcasing minimal overhead for local thread synchronization.
+- **`std.atomic.Value`**: Maps directly to hardware instructions (e.g., `LOCK XADD`), matching C and Rust's performance precisely.
+- **`std.atomic.Mutex`**: Showcase minimal overhead for local synchronization through user-space spinlocks using `tryLock` and `spinLoopHint`.
 
 ---
 

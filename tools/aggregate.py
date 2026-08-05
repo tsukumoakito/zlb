@@ -89,6 +89,7 @@ def save_plots(task, metrics):
         return
     os.makedirs("results/plots", exist_ok=True)
 
+    # 共通設定
     plt.rcParams.update(
         {
             "font.size": 10,
@@ -100,6 +101,7 @@ def save_plots(task, metrics):
         }
     )
 
+    # --- 1. Execution Time Ratio Plot ---
     metrics.sort(key=lambda x: x["ratio"], reverse=True)
     labels = [m["label"] for m in metrics]
     ratios = [m["ratio"] for m in metrics]
@@ -107,22 +109,19 @@ def save_plots(task, metrics):
     plt.figure(figsize=(12, 10), facecolor="#1a1b26")
     ax = plt.gca()
     ax.set_facecolor("#1a1b26")
-
     plt.barh(labels, ratios, color=[get_color(label) for label in labels])
     plt.axvline(x=1.0, color="#ff4444", linestyle="--", alpha=0.8)
-
     plt.xscale("log")
     plt.xlabel("Relative Time Ratio (Lower is better, Log scale)")
     plt.title(f"ZLB PERFORMANCE: {task.upper()}", fontsize=16, fontweight="bold", pad=20)
     plt.grid(axis="x", which="both", linestyle=":", alpha=0.3)
-
     for i, ratio in enumerate(ratios):
         plt.text(ratio, i, f" {ratio:.2f}x", va="center", fontsize=9, fontweight="bold")
-
     plt.tight_layout()
     plt.savefig(f"results/plots/{task}_time.svg", format="svg", transparent=True)
     plt.close()
 
+    # --- 2. Memory Usage Plot ---
     metrics.sort(key=lambda x: x["memory"], reverse=True)
     labels_mem = [m["label"] for m in metrics]
     mems = [m["memory"] for m in metrics]
@@ -130,17 +129,32 @@ def save_plots(task, metrics):
     plt.figure(figsize=(12, 10), facecolor="#1a1b26")
     ax = plt.gca()
     ax.set_facecolor("#1a1b26")
-
     plt.barh(labels_mem, mems, color=[get_color(label) for label in labels_mem])
     plt.xlabel("Memory Usage (MiB)")
     plt.title(f"ZLB RESOURCE: {task.upper()} (Max RSS)", fontsize=16, fontweight="bold", pad=20)
     plt.grid(axis="x", linestyle=":", alpha=0.3)
-
     for i, mem in enumerate(mems):
         plt.text(mem, i, f" {mem:.1f} ", va="center", fontsize=9, fontweight="bold")
-
     plt.tight_layout()
     plt.savefig(f"results/plots/{task}_memory.svg", format="svg", transparent=True)
+    plt.close()
+
+    # --- 3. System Overhead Plot (New!) ---
+    metrics.sort(key=lambda x: x["overhead"], reverse=True)
+    labels_ov = [m["label"] for m in metrics]
+    overheads = [m["overhead"] for m in metrics]
+
+    plt.figure(figsize=(12, 10), facecolor="#1a1b26")
+    ax = plt.gca()
+    ax.set_facecolor("#1a1b26")
+    plt.barh(labels_ov, overheads, color=[get_color(label) for label in labels_ov])
+    plt.xlabel("System Overhead (%)")
+    plt.title(f"ZLB KERNEL: {task.upper()} (Sys Time %)", fontsize=16, fontweight="bold", pad=20)
+    plt.grid(axis="x", linestyle=":", alpha=0.3)
+    for i, ov in enumerate(overheads):
+        plt.text(ov, i, f" {ov:.1f}% ", va="center", fontsize=9, fontweight="bold")
+    plt.tight_layout()
+    plt.savefig(f"results/plots/{task}_overhead.svg", format="svg", transparent=True)
     plt.close()
 
 
